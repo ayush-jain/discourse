@@ -28,6 +28,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 from sklearn import linear_model
 from sklearn import metrics
+from nltk import ngrams
 
 
 url_dict = {}
@@ -492,8 +493,53 @@ class Perceptron(Classifier):
         return np.array(preds)        
 
 '''
+
+def markerstovec(text):
+    f = open('markers.txt', 'r')
+    markers = f.readlines()
+    #print(markers)
+    #print(len(markers))
+    features = []
+    for each in markers:
+        each = each.strip()
+        if(len(each) == 0):
+            continue
+        lis = re.split('[;. |, |\*|\n]',each) 
+        res = preprocess_pipeline(" ".join(lis), lang='english', stemmer_type ='WordNetLemmatizer', return_as_list=True, do_remove_stopwords=False)
+        elem = "_".join(res)
+        features.append(elem)
+    
+    #print(features)
+    
+    size = len(features)
+    vec = np.zeros(size)
+    
+    n = 0
+    count = 0
+    tex = re.split('[;. |, |\*|\n]',text) 
+    #print(text)     
+    for n in xrange(1,6):
+        grams = ngrams(tex, n)
+        for gram in grams:
+            #print(gram)       
+            res = preprocess_pipeline(" ".join(gram), lang='english', stemmer_type ='WordNetLemmatizer', return_as_list=True, do_remove_stopwords=False)
+            elem = "_".join(res)
+            #print(elem)
+            if elem in features:
+                inx = features.index(elem)
+                vec[inx] += 1
+                count = count+1
+                #print(elem) 
+    
+    #print(count)
+    #print(len(vec))
+    return vec
               
 def main():
+
+    #a = markerstovec("New Delhi has in contrast to this been selected as one of the hundred Indian cities to be developed as a smart city under Prime Minister of India Narendra Modi's flagship Smart Cities Mission.")
+    #print(a)
+    #return
 
     with open('urls_784.pickle', 'rb') as handle:
         url_dict = pickle.load(handle)
@@ -708,6 +754,8 @@ def main():
     print "Final MLP results in order of Precision, Recall and F1", precision, recall, f1
     
 '''
+
+        
 
 if __name__ == '__main__':
     main()
